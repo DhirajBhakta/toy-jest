@@ -29,7 +29,9 @@ const hasteMap = new Haste.default({
 // but what if the file changes on the real file system?
 // haste has a watch mode to update the internal representation in-memory whenever the real file changes
 const { hasteFS } = await hasteMap.build();
-const testFiles = hasteFS.matchFilesWithGlob(['**/*.test.js']);
+const testFiles = hasteFS.matchFilesWithGlob([
+    process.argv[2]? `**/${process.argv[2]}*`:'**/*.test.js'
+]);
 
 // to read the test files
 import { runTest } from './worker.js'
