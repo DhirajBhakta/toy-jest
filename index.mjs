@@ -3,7 +3,7 @@ import Haste from 'jest-haste-map';
 
 // to get #cpus to know the number of workers
 import { cpus } from 'os';
-import { dirname, join } from 'path';
+import { dirname, join, relative } from 'path';
 import { fileURLToPath } from 'url';
 
 
@@ -32,24 +32,30 @@ const { hasteFS } = await hasteMap.build();
 const testFiles = hasteFS.matchFilesWithGlob(['**/*.test.js']);
 
 // to read the test files
-import {runTest} from './worker.js'
+import { runTest } from './worker.js'
 
 // read the test files | singe threaded
-for await(const testFile of testFiles){
+for await (const testFile of testFiles) {
     console.log(await runTest(testFile))
 }
 
-import {Worker} from 'jest-worker';
+import { Worker } from 'jest-worker';
+import chalk from 'chalk';
 
-const worker = new Worker(join(root, 'worker.js'),{
+const worker = new Worker(join(root, 'worker.js'), {
     enableWorkerThreads: true
 })
 // read the test files | multi threaded
-for await(const testFile of testFiles){
-    const {success, errorMessage} = await worker.runTest(testFile);
+for await (const testFile of testFiles) {
+    const { success, errorMessage } = await worker.runTest(testFile);
 
+    const status = success
+        ? chalk.green.inverse(' PASS')
+        : chalk.red.inverse(' FAIL')
+    console.log(status+' : '+ chalk.dim(relative(root,testFile)))
     if(!success)
-        console.log(errorMessage)
+        console.log('\t'+errorMessage)
+
 }
 
 worker.end();
