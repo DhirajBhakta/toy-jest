@@ -1,5 +1,7 @@
 const fs = require('fs');
 const expect = require('expect');
+const {describe, it, run} = require('jest-circus');
+
 exports.runTest = async (testFile) => {
     const code = await fs.promises.readFile(testFile, 'utf-8')
     const testResult = {
@@ -8,21 +10,10 @@ exports.runTest = async (testFile) => {
     }
     let testName = '';
     try {
-        const describeFns = [];
-        let currentDescribeFn;
-        const describe = (name, func) => describeFns.push([name, func]);
-        const it = (name, func) =>  currentDescribeFn.push([name,func])
         eval(code);
-        for(const [name, fn] of describeFns){
-            currentDescribeFn = [];
-            testName = name;
-            fn();
-            for(const [itName, itFn] of currentDescribeFn){
-                testName += ' ' + itName;
-                itFn();
-            }
-        }
-        testResult.success = true;
+        const {testResults} = await run();
+        testResult.testResults = testResults;
+        testResult.success = testResults.every((results) => !results.errors.length)
     } catch (error) {
         testResult.errorMessage = testName+ ' : ' +error.message
     }

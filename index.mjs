@@ -30,7 +30,7 @@ const hasteMap = new Haste.default({
 // haste has a watch mode to update the internal representation in-memory whenever the real file changes
 const { hasteFS } = await hasteMap.build();
 const testFiles = hasteFS.matchFilesWithGlob([
-    process.argv[2]? `**/${process.argv[2]}*`:'**/*.test.js'
+    process.argv[2] ? `**/${process.argv[2]}*` : '**/*.test.js'
 ]);
 
 // to read the test files
@@ -51,7 +51,7 @@ const worker = new Worker(join(root, 'worker.js'), {
 var hasFailed = false;
 // read the test files | multi threaded
 for await (const testFile of testFiles) {
-    const { success, errorMessage } = await worker.runTest(testFile);
+    const { success, testResults, errorMessage } = await worker.runTest(testFile);
 
     const status = success
         ? chalk.green.inverse(' PASS')
@@ -59,7 +59,16 @@ for await (const testFile of testFiles) {
     console.log(status + ' : ' + chalk.dim(relative(root, testFile)))
     if (!success) {
         hasFailed = true;
-        console.log('\t' + errorMessage)
+        if (testResults) {
+            testResults
+                .filter(result => result.errors.length)
+                .forEach(result => console.log(
+                    result.testPath.slice(1).join(' ') + '\n' + result.errors[0]
+                ))
+        }
+        else if(errorMessage){
+            console.log(' '+errorMessage)
+        }
     }
 }
 
