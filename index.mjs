@@ -35,9 +35,9 @@ const testFiles = hasteFS.matchFilesWithGlob(['**/*.test.js']);
 import { runTest } from './worker.js'
 
 // read the test files | singe threaded
-for await (const testFile of testFiles) {
-    console.log(await runTest(testFile))
-}
+// for await (const testFile of testFiles) {
+//     console.log(await runTest(testFile))
+// }
 
 import { Worker } from 'jest-worker';
 import chalk from 'chalk';
@@ -45,6 +45,8 @@ import chalk from 'chalk';
 const worker = new Worker(join(root, 'worker.js'), {
     enableWorkerThreads: true
 })
+
+var hasFailed = false;
 // read the test files | multi threaded
 for await (const testFile of testFiles) {
     const { success, errorMessage } = await worker.runTest(testFile);
@@ -52,12 +54,20 @@ for await (const testFile of testFiles) {
     const status = success
         ? chalk.green.inverse(' PASS')
         : chalk.red.inverse(' FAIL')
-    console.log(status+' : '+ chalk.dim(relative(root,testFile)))
-    if(!success)
-        console.log('\t'+errorMessage)
-
+    console.log(status + ' : ' + chalk.dim(relative(root, testFile)))
+    if (!success) {
+        hasFailed = true;
+        console.log('\t' + errorMessage)
+    }
 }
 
 worker.end();
+
+if (hasFailed) {
+    console.log(
+        chalk.red.bold("The test run failed, please fix your failing test")
+    );
+    process.exitCode = 1;
+}
 
 
