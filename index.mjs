@@ -45,7 +45,8 @@ import { Worker } from 'jest-worker';
 import chalk from 'chalk';
 
 const worker = new Worker(join(root, 'worker.js'), {
-    enableWorkerThreads: true
+    enableWorkerThreads: true,
+    numWorkers:1
 })
 
 var hasFailed = false;

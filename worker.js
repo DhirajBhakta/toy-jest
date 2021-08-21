@@ -1,6 +1,6 @@
 const fs = require('fs');
 const expect = require('expect');
-const {describe, it, run} = require('jest-circus');
+const {describe, it, run, resetState} = require('jest-circus');
 
 exports.runTest = async (testFile) => {
     const code = await fs.promises.readFile(testFile, 'utf-8')
@@ -10,6 +10,7 @@ exports.runTest = async (testFile) => {
     }
     let testName = '';
     try {
+        resetState();
         eval(code);
         const {testResults} = await run();
         testResult.testResults = testResults;
