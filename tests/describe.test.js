@@ -6,7 +6,8 @@ describe('describe test', () => {
 });
 
 describe('second describe test', () => {
-    it(`doesn't work`, () => {
+    it(`doesn't work`, async () => {
+        await new Promise(resolve=> setTimeout(resolve, 3000))
         expect(1).toBe(2);
     });
 })
